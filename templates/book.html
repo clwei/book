@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<a href="/book/add">新增圖書</a>
+<form action="" method="GET">
+  <label for="book" class="inline">查詢圖書：</label>
+  <input type="text" name="book" />
+  <input type="submit" value="查詢" />
+</form>
+<div id="queryinfo">
+{% if keyword %}
+  關鍵字： {{ keyword }}
+{% else %}
+  全部圖書
+{% endif %}
+</div>
+<ul id="booklist">  
+{% for book in books %}
+  <li><a href="/book/delete/{{book.id}}" onclick="return confirm('確定要刪除嗎？');">刪除</a> <a href="/book/{{ book.id }}/">{{ book.title }}</a> -- {{ book.author }}</li>
+{% endfor %}
+</ul>
+{% endblock %}

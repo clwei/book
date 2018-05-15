@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<a href="/reader/add">新增讀者</a>
+<form action="" method="GET">
+  <label for="reader" class="inline">查詢讀者：</label>
+  <input type="text" name="reader" />
+  <input type="submit" value="查詢" />
+</form>
+<div id="queryinfo">
+{% if keyword %}
+  關鍵字： {{ keyword }}
+{% else %}
+  全部讀者
+{% endif %}
+</div>
+<ul id="readerlist">  
+{% for reader in readers %}
+  <li><a href="/reader/delete/{{reader.id}}" onclick="return confirm('確定要刪除嗎？');">刪除</a> <a href="/reader/{{ reader.id }}">{{ reader.realname }}</a> -- {{ reader.phone }}</li>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="book_info">
+  <div class="title">書籍資料</div>
+  <form action="/book/{{ book.id }}/" method="POST">
+    <table>
+      <tr><th>圖書編號：</th><td>B{{ book.id|stringformat:"06d"}}</td></tr>
+      {{ form.as_table }}
+    </table>
+    {% csrf_token %}
+    <input type="submit" value="修改" />
+  </form>
+</div>
+<div id="booklist">
+  <div class="title">借閱紀錄</div>
+  <table>
+    <thead>
+      <tr>
+        <th>借出日期</th><th>歸還日期</th><th>借閱人</th>
+      </tr>
+    </thead>
+    <tbody>
+{% for log in circulations %}
+      <tr>
+        <td>{{ log.date_checkout|date:"Y-m-d" }}</td>
+        <td>{{ log.date_return|date:"Y-m-d" }}</td>
+        <td><a href="/reader/{{ log.reader.id }}/">{{ log.reader.realname }}</a></td>
+      </tr>
+{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

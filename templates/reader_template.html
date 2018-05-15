@@ -1,0 +1,25 @@
+<form action="/reader/{{ reader.id }}/" method="POST">
+  <table>
+    <tr><th>讀者編號：</th><td>R{{ reader.id|stringformat:"06d"}}</td></tr>
+    {{ form.as_table }}
+  </table>
+  {% csrf_token %}
+  <input type="submit" value="修改" />
+</form>
+<div id="booklist">
+  <div>書籍借閱紀錄</div>
+  <table>
+    <thead>
+      <tr>
+        <th>借出日期</th><th>歸還日期</th><th>書名</th>
+      </tr>
+    </thead>
+    <tbody>
+{% for log in circulations %}
+      <tr>
+        <td>{{ log.date_checkout|date:"Y-m-d" }}</td><td>{{ log.date_return|date:"Y-m-d" }}</td><td><a href="/book/{{ log.book.id }}/">{{ log.book.title }}</a>{% if log.date_return == None %} <a href="/book/return/{{ log.book.id }}" onclick="return confirm('確定要還書?');">還書</a>{% endif %}</td>
+      </tr>
+{% endfor %}
+    </tbody>
+  </table>
+</div>
