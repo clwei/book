@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login
 from web.models import Book, Reader, Circulation
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
+from django.http import HttpResponse
 
 def index(request):
     return render_to_response('index.html', context_instance=RequestContext(request))
@@ -101,7 +102,71 @@ def book_view(request, book_id):
   circulations = Circulation.objects.filter(book=book).order_by('-id')
   return render_to_response('book_view.html', {'book': book, 'circulations': circulations, 'form': form}, context_instance=RequestContext(request))
 
+def book_checkout(request, reader_id=None, book_id=None):
+  if not reader_id:
+    keyword = request.POST.get('keyword')
+    if keyword != None:
+      readers = Reader.objects.filter(realname__contains=keyword).order_by('-id')
+    else:
+      readers = Reader.objects.all().order_by('-id')
+    return render_to_response('circulation_reader.html', {'readers': readers, 'keyword': keyword, 'operation': '借書'}, context_instance=RequestContext(request))
+
+  try:
+    reader = Reader.objects.get(id=int(reader_id))
+  except ObjectDoesNotExist:
+    return redirect('/book/checkout')
+
+  off_shelf_book_ids = [circulation.book.id for circulation in Circulation.objects.filter(date_return=None)]
+  
+  if book_id:
+    try:
+      book = Book.objects.get(id=int(book_id))
+      if not book_id in off_shelf_book_ids:
+        circulation = Circulation(reader=reader, book=book, date_checkout=datetime.now())
+        circulation.save()
+    except ObjectDoesNotExist:
+      pass
+    return redirect('/book/checkout/'+str(reader_id))
+  
+  borrowing = Circulation.objects.filter(reader=reader, date_return=None)
+  keyword = request.POST.get('keyword')
+  if keyword != None:
+    books = Book.objects.filter(title__icontains=keyword).exclude(id__in=off_shelf_book_ids).order_by('-id')
+  else:
+    books = Book.objects.exclude(id__in=off_shelf_book_ids).order_by('-id')
+  
+  return render_to_response('circulation_book.html', {'reader': reader, 'borrowing': borrowing, 'books': books, 'keyword': keyword, 'operation': '借書'}, context_instance=RequestContext(request))
+
+def book_return(request, book_id=None):
+  if book_id:
+    try:
+      book = Book.objects.get(id=book_id)
+      circulation = Circulation.objects.get(book=book, date_return=None)
+      circulation.date_return = datetime.now()
+      circulation.save()
+    except ObjectDoesNotExist:
+      pass
+    
+    return redirect('/book/return/')
+  
+  if request.method == 'POST':
+    form = CirculationForm(request.POST)
+  else:
+    form = CirculationForm()
+
+  off_shelf_book_ids = [circulation.book.id for circulation in Circulation.objects.filter(date_return=None)]
+  keyword = request.POST.get('keyword')
+  if keyword != None:
+    books = Book.objects.filter(title__icontains=keyword, id__in=off_shelf_book_ids).order_by('-id')
+  else:
+    books = Book.objects.filter(id__in=off_shelf_book_ids).order_by('-id')
+
+  return render_to_response('circulation_book.html', {'form': form, 'books': books, 'keyword': keyword, 'operation': '還書'}, context_instance=RequestContext(request))
+
 def circulation(request):
+  return render_to_response('circulation.html', context_instance=RequestContext(request))
+
+def circulation_combo(request):
   message = ''
   reader = None
   circulations = None
@@ -113,7 +178,6 @@ def circulation(request):
       try:
         if entityid[0] == 'R':
           reader = Reader.objects.get(id=int(entityid[1:]))        
-#          circulations = Circulation.objects.filter(reader=reader).order_by('-id')
           form = CirculationForm(initial={'entityid':entityid, 'rid':reader.id})
           message = '切換讀者'
         elif entityid[0] == 'B':
@@ -147,4 +211,4 @@ def circulation(request):
   else:
     form = CirculationForm();
   form['entityid'].label = '請輸入讀者編號或書籍編號'
-  return render_to_response('circulation.html', {'form': form, 'message': message, 'reader': reader, 'circulations': circulations}, context_instance=RequestContext(request))
+  return render_to_response('circulation_combo.html', {'form': form, 'message': message, 'reader': reader, 'circulations': circulations}, context_instance=RequestContext(request))

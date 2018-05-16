@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="title">{{ operation }}</div>
+<form action="" method="POST">
+  <label for="reader" class="inline">查詢讀者：</label>
+  <input type="text" name="keyword" />
+  <input type="submit" value="查詢" />
+  {% csrf_token %}
+</form>
+<div id="queryinfo">
+{% if keyword %}
+  關鍵字： {{ keyword }}
+{% else %}
+  全部讀者
+{% endif %}
+</div>
+<ul id="readerlist">  
+{% for reader in readers %}
+  <li><a href="/reader/{{ reader.id }}">{{ reader.realname }}</a> -- <a href="/book/checkout/{{ reader.id }}/">借書</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

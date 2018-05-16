@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="title">{{ operation }}</div>
+{% if reader %}
+<div id="reader_info">
+  <div class="title">讀者資料</div>
+  <table class="table">
+    <tr><th>讀者編號</th><td>R{{ reader.id|stringformat:"06d" }}</td></tr>
+    <tr><th>姓名</th><td>{{ reader.realname }}</td></tr>
+    <tr><th>聯絡電話</th><td>{{ reader.phone }}</td></tr>
+    <tr>
+      <th>借閱中</th>
+      <td>{% for item in borrowing %}<div><a href="/book/{{ item.book.id }}">{{ item.book.title }}</a></div>{% endfor %}</td>
+    </tr>
+  </table>
+</div>
+{% endif %}
+<form action="" method="POST">
+  <label for="book" class="inline">查詢圖書：</label>
+  <input type="text" name="keyword" />
+  <input type="submit" value="查詢" />
+  {% csrf_token %}
+</form>
+<div id="queryinfo">
+{% if keyword %}
+  關鍵字： {{ keyword }}
+{% else %}
+  全部圖書
+{% endif %}
+</div>
+<ul id="booklist">  
+{% for book in books %}
+  <li><a href="/book/{{ book.id }}/">{{ book.title }}</a> -- <a href="{{ book.id }}/">{{ operation }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

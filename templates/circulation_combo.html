@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if message %}
+<div id="message">{{ message }}</div>
+{% endif %}
+<form action="" method="POST">
+  {{ form.as_p }}
+  {% csrf_token %}
+</form>
+{% if reader %}
+<div id="reader_info">
+  <div class="title">讀者資料</div>
+  <table class="table">
+    <tr><th>讀者編號</th><td>R{{ reader.id|stringformat:"06d" }}</td></tr>
+    <tr><th>姓名</th><td>{{ reader.realname }}</td></tr>
+    <tr><th>聯絡電話</th><td>{{ reader.phone }}</td></tr>
+  </table>
+</div>
+<div id="booklist">
+  <div class="title">書籍借閱紀錄</div>
+  <table>
+    <thead>
+      <tr>
+        <th>借出日期</th><th>歸還日期</th><th>書名</th>
+      </tr>
+    </thead>
+    <tbody>
+{% for log in circulations %}
+      <tr>
+        <td>{{ log.date_checkout|date:"Y-m-d" }}</td>
+        <td>{{ log.date_return|date:"Y-m-d" }}</td>
+        <td><a href="/book/{{ log.book.id }}/">{{ log.book.title }}</a></td>
+      </tr>
+{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#id_entityid').focus().select();
+    
+    $('#id_entityid').keypress(function(e) {
+      var code = e.keyCode || e.which;
+      if (code == 32) { // space
+        window.location.href = '/circulation/';
+      }
+    });
+  });
+</script>
+{% endblock %}
